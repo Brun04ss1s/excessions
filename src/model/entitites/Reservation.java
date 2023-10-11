@@ -1,5 +1,7 @@
 package model.entitites;
 
+import model.exceptions.DomainException;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -10,9 +12,15 @@ public class Reservation {
     private Date checkIn;
     private Date checkOut;
 
-    private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    public Reservation(){
 
-    public Reservation(Integer roomNumber, Date checkIn, Date checkOut) {
+    }
+
+    public Reservation(Integer roomNumber, Date checkIn, Date checkOut){
+        if (!checkOut.after(checkIn)) {
+            throw new DomainException( "Error in reservation: Check-out date must be after check-in date.");
+        }
         this.roomNumber = roomNumber;
         this.checkIn = checkIn;
         this.checkOut = checkOut;
@@ -39,16 +47,16 @@ public class Reservation {
         return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
     }
 
-    public String updateDates(Date checkIn, Date checkOut) {
+    public void updateDates(Date checkIn, Date checkOut){
 
         if (checkIn.before(getCheckIn()) || checkOut.before(getCheckOut())) {
-            return "Error in reservation: Reservation dates for update must be future dates.";
-        } else if (!checkOut.after(checkIn)) {
-            return "Error in reservation: Check-out date must be after check-in date.";
+            throw new DomainException("Error in reservation: Reservation dates for update must be future dates.");
+        }
+        if (!checkOut.after(checkIn)) {
+            throw new DomainException( "Error in reservation: Check-out date must be after check-in date.");
         } else {
             this.checkIn = checkIn;
             this.checkOut = checkOut;
-            return toString();
         }
     }
 
@@ -62,6 +70,6 @@ public class Reservation {
                 + sdf.format(checkOut)
                 + ", "
                 + duration()
-                + " nights";
+                + " nights.";
     }
 }
